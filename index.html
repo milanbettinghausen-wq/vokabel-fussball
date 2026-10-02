@@ -565,6 +565,7 @@ function answer(team){
   if (game.over || game.celebrating) return;
   history.push(snapshot()); if (history.length > 300) history.shift();
   game.inPlay = true;
+  shuffleRoam();
   flash(team);
   const d = DIR[team], np = game.pos + d;
   if (Math.abs(np) >= settings.steps) { scoreGoal(team); refreshUI(); return; }
@@ -932,8 +933,11 @@ function updateBall(now, dt){
     ball.y += (p.y + .4 - ball.y) * a;
   }
 }
-// Vor dem ersten Pass stehen beide Teams sauber in ihrer Hälfte. Danach rückt das Team mit Ball auf,
-// der Gegner fällt zurück, und jeder Feldspieler sucht sich alle paar Sekunden einen neuen Laufweg.
+// Vor dem ersten Pass stehen beide Teams sauber in ihrer Hälfte. Bei jedem Spielzug rückt das Team mit Ball auf,
+// der Gegner fällt zurück, und jeder Feldspieler bekommt einen neuen Platz. Danach stehen alle still.
+function shuffleRoam(){
+  players.forEach(p => { p.roam = {x:rnd(-8, 8), y:rnd(-6, 6)}; });
+}
 function updatePlayers(now, dt){
   const live = game.inPlay && !reduceMotion;
   for (const p of players) {
@@ -947,16 +951,14 @@ function updatePlayers(now, dt){
       const d = DIR[p.team];
       tx = p.home.x; ty = p.home.y;
       if (live) {
-        if (!p.roam || now > p.roam.next) p.roam = {x:rnd(-11, 11), y:rnd(-8, 8), next:now + rnd(2200, 5000)};
-        const push = !game.holder ? 6 : (game.holder === p.team ? 17 : -4);
-        tx += p.roam.x + push * d + ball.x * 0.3;
-        ty += p.roam.y + ball.y * 0.15;
-        rate = 0.9;
+        const r = p.roam || {x:0, y:0};
+        const push = !game.holder ? 6 : (game.holder === p.team ? 15 : -4);
+        tx += r.x + push * d + ball.x * 0.3;
+        ty += r.y + ball.y * 0.15;
       } else {
         tx += ball.x * 0.15; ty += ball.y * 0.12;
-        if (!reduceMotion) { tx += Math.sin(now * 0.0011 + p.phase) * .7; ty += Math.cos(now * 0.0009 + p.phase * 1.3) * .7; }
-        rate = 1.5;
       }
+      rate = 1.6;
       tx = clamp(tx, -L / 2 + 3, L / 2 - 3);
       ty = clamp(ty, -W / 2 + 3, W / 2 - 3);
     }
