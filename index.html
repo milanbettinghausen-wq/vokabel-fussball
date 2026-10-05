@@ -26,8 +26,8 @@
   --grass-a:#3a9a48;
   --grass-b:#338a40;
   --grass-edge:#2a7234;
-  --red:#e23b3f;
-  --red-deep:#a3202a;
+  --red:#22c55e;
+  --red-deep:#13803d;
   --blue:#2f6fe4;
   --blue-deep:#1b449f;
   --gk-red:#ff9d2e;
@@ -158,7 +158,7 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 <div class="app" id="app">
   <header class="board">
     <div class="side red">
-      <span class="tname" id="nameRed">Rot</span>
+      <span class="tname" id="nameRed">Grün</span>
       <span class="score" id="scoreRed">0</span>
     </div>
     <div class="clockbox">
@@ -180,8 +180,8 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
   </header>
 
   <main class="field">
-    <button class="answer red" id="btnRed" aria-label="Rot hat richtig geantwortet">
-      <span class="a-name" id="btnNameRed">Rot</span>
+    <button class="answer red" id="btnRed" aria-label="Grün hat richtig geantwortet">
+      <span class="a-name" id="btnNameRed">Grün</span>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6"/></svg>
       <span class="a-sub">richtig</span>
     </button>
@@ -189,7 +189,7 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
       <canvas id="cv" aria-label="Spielfeld"></canvas>
       <div class="goalpop" id="goalpop" hidden>
         <div class="goal-word">TOR!</div>
-        <div class="goal-team" id="goalTeam">für Rot</div>
+        <div class="goal-team" id="goalTeam">für Grün</div>
       </div>
     </div>
     <button class="answer blue" id="btnBlue" aria-label="Blau hat richtig geantwortet">
@@ -212,7 +212,7 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
     <button class="tool" id="openSettings">
       <svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg><span>Einstellungen</span>
     </button>
-    <span class="keys">Tastatur: ← Rot · → Blau · Leertaste Uhr · Z Rückgängig</span>
+    <span class="keys">Tastatur: ← Grün · → Blau · Leertaste Uhr · Z Rückgängig</span>
   </footer>
 </div>
 
@@ -358,13 +358,14 @@ const COL = {
 };
 
 /* ---------- Einstellungen ---------- */
-const DEFAULTS = {nameRed:'Rot', nameBlue:'Blau', clockDir:'down', minutes:10, endMode:'time',
+const DEFAULTS = {nameRed:'Grün', nameBlue:'Blau', clockDir:'down', minutes:10, endMode:'time',
   goalsToWin:5, steps:3, formRed:'4-4-2', formBlue:'4-3-3', muted:false, goalSound:'fanfare'};
 let settings = Object.assign({}, DEFAULTS);
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || 'null');
   if (s && typeof s === 'object') Object.assign(settings, s);
 } catch (e) {}
+if (settings.nameRed === 'Rot') settings.nameRed = 'Grün'; // linke Mannschaft heißt jetzt Grün
 if (!FORMATIONS[settings.formRed]) settings.formRed = DEFAULTS.formRed;
 if (!FORMATIONS[settings.formBlue]) settings.formBlue = DEFAULTS.formBlue;
 if (![2,3,4].includes(+settings.steps)) settings.steps = 3;
@@ -855,7 +856,7 @@ function draw(now){
     ctx.beginPath(); ctx.arc(x, y, 1, a, a + Math.PI / 2); ctx.stroke();
   });
 
-  // Tore: links verteidigt Rot, rechts Blau
+  // Tore: links verteidigt Grün, rechts Blau
   for (const d of [-1, 1]) {
     const defender = d < 0 ? 'red' : 'blue', scorer = d < 0 ? 'blue' : 'red';
     const t = now - netShake[scorer];
@@ -1030,7 +1031,7 @@ function readInt(id, lo, hi, fallback){
 $('settingsForm').addEventListener('submit', e => {
   e.preventDefault();
   const prev = Object.assign({}, settings);
-  settings.nameRed = ($('fNameRed').value.trim() || 'Rot').slice(0, 18);
+  settings.nameRed = ($('fNameRed').value.trim() || 'Grün').slice(0, 18);
   settings.nameBlue = ($('fNameBlue').value.trim() || 'Blau').slice(0, 18);
   settings.formRed = $('fFormRed').value; settings.formBlue = $('fFormBlue').value;
   settings.minutes = readInt('fMinutes', 1, 90, prev.minutes);
@@ -1113,7 +1114,7 @@ document.addEventListener('keydown', e => {
   if (modalOpen || /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
   if (e.repeat) return;
   const k = e.key.toLowerCase();
-  if (k === 'arrowleft' || k === 'r') { e.preventDefault(); answer('red'); }
+  if (k === 'arrowleft' || k === 'g' || k === 'r') { e.preventDefault(); answer('red'); }
   else if (k === 'arrowright' || k === 'b') { e.preventDefault(); answer('blue'); }
   else if (k === ' ') { e.preventDefault(); toggleClock(); }
   else if (k === 'z' || k === 'backspace') { e.preventDefault(); undo(); }
